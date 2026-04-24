@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Neon Arena — Multiplayer FPS</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ================= LOBBY ================= -->
+  <section id="screen-lobby" class="screen active">
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <div class="lobby-wrap">
+      <header class="lobby-header">
+        <h1 class="logo">NEON<span>ARENA</span></h1>
+        <p class="tagline">FAST · LOUD · LETHAL</p>
+      </header>
+
+      <!-- Callsign row -->
+      <form id="joinForm" class="form-row" autocomplete="off">
+        <label for="nameInput">CALLSIGN</label>
+        <input id="nameInput" type="text" maxlength="16" placeholder="Enter your name..." required />
+      </form>
+
+      <!-- Character selection -->
+      <section class="select-section">
+        <div class="section-head">
+          <h2 class="section-title">CHOOSE OPERATOR</h2>
+          <div class="section-sub">Select your character</div>
+        </div>
+        <div id="character-grid" class="select-grid character-grid"></div>
+      </section>
+
+      <!-- Map selection -->
+      <section class="select-section">
+        <div class="section-head">
+          <h2 class="section-title">CHOOSE BATTLEGROUND</h2>
+          <div class="section-sub">Pick a map &mdash; if the room is empty, yours is loaded</div>
+        </div>
+        <div id="map-grid" class="select-grid map-grid"></div>
+      </section>
+
+      <!-- Deploy -->
+      <div class="deploy-row">
+        <div class="controls">
+          <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</div>
+          <div><kbd>SPACE</kbd> jump</div>
+          <div><kbd>LMB</kbd> fire</div>
+          <div><kbd>R</kbd> reload</div>
+          <div><kbd>TAB</kbd> scoreboard</div>
+          <div><kbd>ESC</kbd> release mouse</div>
+        </div>
+        <button type="submit" form="joinForm" id="joinBtn" class="btn primary big">DEPLOY</button>
+      </div>
+
+      <div class="version">v0.2 &middot; Maps &amp; Operators</div>
+    </div>
+  </section>
+
+  <!-- ================= LOADING ================= -->
+  <section id="screen-loading" class="screen">
+    <div class="bg-grid"></div>
+    <div class="loader">
+      <div class="spinner"></div>
+      <p class="loading-text">JACKING IN<span class="dots">...</span></p>
+      <p id="loadingStatus" class="loading-status">Connecting...</p>
+    </div>
+  </section>
+
+  <!-- ================= GAME ================= -->
+  <section id="screen-game" class="screen">
+    <canvas id="canvas"></canvas>
+
+    <!-- HUD -->
+    <div id="hud">
+      <!-- Crosshair -->
+      <div id="crosshair">
+        <div class="ch-dot"></div>
+        <div class="ch-line top"></div>
+        <div class="ch-line bottom"></div>
+        <div class="ch-line left"></div>
+        <div class="ch-line right"></div>
+      </div>
+      <div id="hitmarker"></div>
+
+      <!-- Damage vignette -->
+      <div id="damage-vignette"></div>
+
+      <!-- Top bar: match info -->
+      <div id="top-bar">
+        <div id="match-timer">05:00</div>
+        <div id="match-info">FREE FOR ALL · FIRST TO 25</div>
+        <div id="current-map">— · —</div>
+      </div>
+
+      <!-- Kill feed -->
+      <div id="kill-feed"></div>
+
+      <!-- Bottom bar: HP & ammo -->
+      <div id="bottom-bar">
+        <div class="hud-box hp">
+          <div class="hud-label">HP</div>
+          <div class="bar"><div id="hp-fill"></div></div>
+          <div id="hp-value">100</div>
+        </div>
+        <div class="hud-box weapon">
+          <div id="weapon-name">PULSE-R</div>
+          <div id="ammo">
+            <span id="ammo-cur">30</span>
+            <span class="slash">/</span>
+            <span id="ammo-max">30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Minimap -->
+      <div id="minimap-box">
+        <canvas id="minimap" width="180" height="180"></canvas>
+      </div>
+
+      <!-- Reload overlay -->
+      <div id="reload-overlay" class="hidden">
+        <div class="reload-bar"><div id="reload-fill"></div></div>
+        <div class="reload-label">RELOADING</div>
+      </div>
+
+      <!-- Death overlay -->
+      <div id="death-overlay" class="hidden">
+        <h2>ELIMINATED</h2>
+        <p>Killed by <span id="killed-by">-</span></p>
+        <p class="respawn">Respawning in <span id="respawn-timer">3</span>s</p>
+      </div>
+
+      <!-- Scoreboard -->
+      <div id="scoreboard" class="hidden">
+        <h2>SCOREBOARD</h2>
+        <table>
+          <thead><tr><th>PLAYER</th><th>KILLS</th><th>DEATHS</th><th>K/D</th></tr></thead>
+          <tbody id="scoreboard-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Pointer lock hint -->
+      <div id="click-to-play" class="hidden">CLICK TO PLAY</div>
+    </div>
+  </section>
+
+  <!-- ================= ENDGAME ================= -->
+  <section id="screen-endgame" class="screen">
+    <div class="bg-grid"></div>
+    <div class="panel end-panel">
+      <h1 class="logo">MATCH OVER</h1>
+      <p class="winner-line">Winner: <span id="winner-name">-</span></p>
+      <table id="final-table">
+        <thead><tr><th>#</th><th>PLAYER</th><th>K</th><th>D</th><th>K/D</th></tr></thead>
+        <tbody id="final-body"></tbody>
+      </table>
+      <button id="playAgainBtn" class="btn primary">PLAY AGAIN</button>
+    </div>
+  </section>
+
+  <!-- Libraries -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
